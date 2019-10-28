@@ -23,7 +23,7 @@ public class AnswerController {
     @Autowired
     AnswerService answerService;
 
-    @PostMapping(path = "/question/{questionId}/answer/create", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
+    @PostMapping(path = "question/{questionId}/answer/create", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<AnswerResponse> createAnswer(final AnswerRequest answerRequest, @PathVariable("questionId") String questionId,
                                                        @RequestHeader("authorization") final String authorization)
