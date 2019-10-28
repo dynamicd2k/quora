@@ -7,6 +7,7 @@ import com.upgrad.quora.service.entity.UserAuthEntity;
 import com.upgrad.quora.service.entity.UserEntity;
 import com.upgrad.quora.service.exception.AuthorizationFailedException;
 import com.upgrad.quora.service.exception.InvalidQuestionException;
+import com.upgrad.quora.service.exception.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -122,5 +123,36 @@ public class QuestionService {
         }
         //else AuthorizationFailedException is thrown
         throw new AuthorizationFailedException("ATHR-003","Only the question owner can edit the question");
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public String[] getQuestions(String authorizationToken,String userId)throws AuthorizationFailedException, UserNotFoundException {
+
+        UserAuthEntity token = userDao.getUserAuthToken(authorizationToken);
+        //if the access token is not there in the database, AuthorizationFailedException is thrown
+        if(token == null){
+            throw new AuthorizationFailedException("ATHR-001","User has not signed in");
+        }
+        //if the access token is valid but the user has not logged in, AuthorizationFailedException is thrown
+        if(token.getLogoutAt()!= null){
+            throw new AuthorizationFailedException("ATHR-002","User is signed out.Sign in first to get user details");
+        }
+        //if the user is not present in the database UserNotFound Exception is thrown
+        UserEntity user = userDao.getUserById(userId);
+        if(user == null){
+            throw new UserNotFoundException("USR-001","User with entered uuid whose question details are to be seen does not exist");
+        }
+        //else the questions asked by a specific user are returned to the controller
+        List<QuestionEntity> questions = user.getQuestions();
+        String content = " ";
+        String id = " ";
+        String[] question = new String[2];
+        for(QuestionEntity q : questions){
+            content +=  q.getContent() + " , ";
+            id +=  q.getUuid() + " , " ;
+        }
+        question[0]=id;
+        question[1]=content;
+        return question;
     }
 }
