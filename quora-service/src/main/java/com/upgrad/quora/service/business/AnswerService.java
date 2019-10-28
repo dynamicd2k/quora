@@ -7,12 +7,15 @@ import com.upgrad.quora.service.entity.AnswerEntity;
 import com.upgrad.quora.service.entity.QuestionEntity;
 import com.upgrad.quora.service.entity.UserAuthEntity;
 import com.upgrad.quora.service.entity.UserEntity;
+import com.upgrad.quora.service.exception.AnswerNotFoundException;
 import com.upgrad.quora.service.exception.AuthorizationFailedException;
 import com.upgrad.quora.service.exception.InvalidQuestionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.ZonedDateTime;
 
 @Service
 public class AnswerService {
@@ -50,5 +53,36 @@ public class AnswerService {
         AnswerEntity answerId = answerDao.create(answer);
 
         return answerId;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public AnswerEntity update(String authorizationToken,AnswerEntity editAnswer)throws AuthorizationFailedException,
+            AnswerNotFoundException {
+
+        UserAuthEntity token = userDao.getUserAuthToken(authorizationToken);
+        //if the access token is not there in the database, AuthorizationFailedException is thrown
+        if(token == null){
+            throw new AuthorizationFailedException("ATHR-001","User has not signed in");
+        }
+        //if the access token is valid but the user has not logged in, AuthorizationFailedException is thrown
+        if(token.getLogoutAt()!= null){
+            throw new AuthorizationFailedException("ATHR-002","User is signed out.Sign in first to get user details");
+        }
+        AnswerEntity answer = answerDao.getAnswerById(editAnswer.getUuid());
+        //if answer Does not exist in the database,AnswerNotFoundException is thrown
+        if (answer==null){
+            throw new AnswerNotFoundException("ANS-001","Entered answer uuid does not exist");
+        }
+        UserEntity user = token.getUser();
+        //if the owner of the answer is logged in user then the answer is updated in the database
+        if(answer.getUser() == user)
+        {
+            answer.setAnswer(editAnswer.getAnswer());
+            answer.setDate(ZonedDateTime.now());
+            answerDao.updateAnswer(answer);
+            return answer;
+        }
+        //else AuthorizationFailedException is thrown
+        throw new AuthorizationFailedException("ATHR-003","Only the answer owner can edit the answer");
     }
 }
