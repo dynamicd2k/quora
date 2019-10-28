@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -53,7 +54,7 @@ public class AnswerController {
         return new ResponseEntity<AnswerEditResponse>(answerEditResponse,HttpStatus.OK);
     }
 
-    @RequestMapping(method = RequestMethod.DELETE , path ="answer/delete/{answerId}",produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @DeleteMapping(path ="answer/delete/{answerId}",produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<AnswerDeleteResponse> deleteAnswer(@RequestHeader("authorization") final String authorization,
                                                              @PathVariable("answerId") String answerId) throws AuthorizationFailedException, AnswerNotFoundException {
         AnswerEntity answer = answerService.delete(answerId,authorization);
@@ -61,4 +62,25 @@ public class AnswerController {
         AnswerDeleteResponse answerDeleteResponse=new AnswerDeleteResponse().id(answer.getUuid()).status("ANSWER DELETED");
         return new ResponseEntity<AnswerDeleteResponse>(answerDeleteResponse,HttpStatus.OK);
     }
+    @GetMapping(path = "answer/all/{questionId}",produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<AnswerDetailsResponse> getAllAnswersToQuestion(@RequestHeader("authorization") final String authorization,
+                                                                         @PathVariable("questionId")String questionId)
+            throws AuthorizationFailedException,InvalidQuestionException{
+
+        List<AnswerEntity> answers = answerService.getAnswers(authorization,questionId);
+        String content = " ";
+        String id = " ";
+        String[] ans = new String[2];
+        for(AnswerEntity q : answers){
+            content +=  q.getAnswer() + " , ";
+            id +=  q.getUuid() + " , " ;
+        }
+        ans[0]=id;
+        ans[1]=content;
+        String question =answers.get(0).getQuestion().getContent();
+        AnswerDetailsResponse answerDetailsResponse=new AnswerDetailsResponse().id(ans[0]).
+                questionContent(question).answerContent(ans[1]);
+        return new ResponseEntity<AnswerDetailsResponse>(answerDetailsResponse,HttpStatus.OK);
+    }
+
 }
