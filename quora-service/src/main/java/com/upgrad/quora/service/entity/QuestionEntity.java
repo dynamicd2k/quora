@@ -18,7 +18,7 @@ import java.util.List;
 @Entity
 @Table(name="question")
 @NamedQueries({
-        @NamedQuery(name = "questionById", query = "select u from questionEntity u where u.uuid = :uuid"),
+        @NamedQuery(name = "questionById", query = "select u from QuestionEntity u where u.uuid = :uuid"),
 })
 public class QuestionEntity implements Serializable {
 
