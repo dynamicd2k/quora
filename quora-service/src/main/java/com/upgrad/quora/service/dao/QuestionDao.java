@@ -39,4 +39,9 @@ public class QuestionDao {
             return null;
         }
     }
+
+    //this method is used to update the question
+    public void updateQuestion(QuestionEntity question){
+        entityManager.merge(question);
+    }
 }

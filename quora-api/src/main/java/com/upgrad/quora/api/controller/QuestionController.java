@@ -1,9 +1,6 @@
 package com.upgrad.quora.api.controller;
 
-import com.upgrad.quora.api.model.QuestionDeleteResponse;
-import com.upgrad.quora.api.model.QuestionDetailsResponse;
-import com.upgrad.quora.api.model.QuestionRequest;
-import com.upgrad.quora.api.model.QuestionResponse;
+import com.upgrad.quora.api.model.*;
 import com.upgrad.quora.service.business.QuestionService;
 import com.upgrad.quora.service.entity.QuestionEntity;
 import com.upgrad.quora.service.exception.AuthorizationFailedException;
@@ -56,5 +53,21 @@ public class QuestionController {
 
         QuestionDeleteResponse questionDeleteResponse=new QuestionDeleteResponse().id(question.getUuid()).status("QUESTION DELETED");
         return  new ResponseEntity<QuestionDeleteResponse>(questionDeleteResponse,HttpStatus.OK);
+    }
+
+    @PutMapping(path = "/question/edit/{questionId}",produces =MediaType.APPLICATION_JSON_UTF8_VALUE )
+    public ResponseEntity<QuestionEditResponse> editQuestionContent(final QuestionEditRequest questionEditRequest,
+                                                                    @RequestHeader("authorization") final String authorization,
+                                                                    @PathVariable("questionId") String questionId)
+            throws AuthorizationFailedException, InvalidQuestionException {
+
+        QuestionEntity editQuestion = new QuestionEntity();
+        editQuestion.setUuid(questionId);
+        editQuestion.setContent(questionEditRequest.getContent());
+
+        QuestionEntity question = questionService.editQuestion(authorization, editQuestion);
+
+        QuestionEditResponse questionEditResponse=new QuestionEditResponse().id(question.getUuid()).status("QUESTION EDITED");
+        return new ResponseEntity<QuestionEditResponse>(questionEditResponse,HttpStatus.OK);
     }
 }
