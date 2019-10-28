@@ -33,4 +33,9 @@ public class AnswerDao {
     public void updateAnswer(AnswerEntity answer){
         entityManager.merge(answer);
     }
+
+    //this method is used to delete the answer
+    public void deleteAnswer(AnswerEntity answer){
+        entityManager.remove(answer);
+    }
 }
