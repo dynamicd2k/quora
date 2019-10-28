@@ -1,11 +1,13 @@
 package com.upgrad.quora.api.controller;
 
+import com.upgrad.quora.api.model.QuestionDeleteResponse;
 import com.upgrad.quora.api.model.QuestionDetailsResponse;
 import com.upgrad.quora.api.model.QuestionRequest;
 import com.upgrad.quora.api.model.QuestionResponse;
 import com.upgrad.quora.service.business.QuestionService;
 import com.upgrad.quora.service.entity.QuestionEntity;
 import com.upgrad.quora.service.exception.AuthorizationFailedException;
+import com.upgrad.quora.service.exception.InvalidQuestionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -21,7 +23,7 @@ public class QuestionController {
 
     @Autowired
     QuestionService questionService;
-    @PostMapping( path = "/question/create", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @PostMapping( path = "/create", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<QuestionResponse> createQuestion(final QuestionRequest questionRequest,
                                                            @RequestHeader("authorization") final String authorization)
             throws AuthorizationFailedException {
@@ -36,7 +38,7 @@ public class QuestionController {
         return new ResponseEntity<QuestionResponse>(questionResponse, HttpStatus.CREATED);
     }
 
-    @GetMapping( path = "/question/all", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping( path = "/all", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<QuestionDetailsResponse> getAllQuestions(@RequestHeader("authorization") final String authorization)
             throws AuthorizationFailedException {
 
@@ -44,5 +46,15 @@ public class QuestionController {
 
         QuestionDetailsResponse questionDetailsResponse = new QuestionDetailsResponse().id(questions[0]).content(questions[1]);
         return new ResponseEntity<QuestionDetailsResponse>(questionDetailsResponse, HttpStatus.OK);
+    }
+    @DeleteMapping(path = "/delete/{questionId}",produces =MediaType.APPLICATION_JSON_UTF8_VALUE )
+    public ResponseEntity<QuestionDeleteResponse> deleteQuestion(@RequestHeader("authorization") final String authorization,
+                                                                 @PathVariable("questionId") String questionId)
+            throws AuthorizationFailedException, InvalidQuestionException {
+
+        QuestionEntity question = questionService.deleteQuestion(questionId, authorization);
+
+        QuestionDeleteResponse questionDeleteResponse=new QuestionDeleteResponse().id(question.getUuid()).status("QUESTION DELETED");
+        return  new ResponseEntity<QuestionDeleteResponse>(questionDeleteResponse,HttpStatus.OK);
     }
 }
